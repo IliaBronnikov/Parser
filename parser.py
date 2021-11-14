@@ -3,7 +3,7 @@ import requests
 
 name_file = "fileOutput.txt"
 url = "https://meduza.io/feature/2021/11/13/rossiyskie-vlasti-pytayutsya-zaschitit-pogibshego-v-berline-diplomata-ot-dikih-teoriy-pressy"
-
+length = 80
 
 def get_page(url):
     page = requests.get(url)
@@ -11,6 +11,12 @@ def get_page(url):
     if page.status_code == 200:
         return content
     return None
+
+def chunk_string(string, length):
+    while len(string) > length:
+        upper_bound = string.rindex(" ", 0, length)
+        yield string[0:upper_bound].strip()
+        string = string[upper_bound:]
 
 
 def clean_bs_item(bs_item):
@@ -38,6 +44,8 @@ def clean_bs_item(bs_item):
             clean_tags_str += "{}".format(line.replace(u"\xa0", u" "))
     for line in clean_tags_str.splitlines():
         if len(line) > 1:
+            if len(line) > length:
+                line = "\n".join(list(chunk_string(line, length)))
             clean_html_str += "{}\n".format(line)
     return clean_html_str
 
