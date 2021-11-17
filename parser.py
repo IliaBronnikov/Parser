@@ -43,7 +43,7 @@ def create_parser():
     return parser
 
 
-def get_page(url):
+def get_page(url: str):
     page = requests.get(url)
     content = page.content.decode("utf-8")
     if page.status_code == 200:
@@ -51,14 +51,14 @@ def get_page(url):
     return None
 
 
-def chunk_string(string, length):
+def chunk_string(string: str, length: int) -> str:
     while len(string) > length:
         upper_bound = string.rindex(" ", 0, length)
         yield string[0:upper_bound].strip()
         string = string[upper_bound:]
 
 
-def clean_bs_item(bs_item, length_string):
+def clean_bs_item(bs_item: BeautifulSoup, length_string: int) -> str:
     lines = bs_item.find_all(text=True or "img")
     clean_tags_str = ""
     clean_html_str = ""
@@ -88,7 +88,7 @@ def clean_bs_item(bs_item, length_string):
     return clean_html_str
 
 
-def write_data(name_file, full_text):
+def write_data(name_file: str, full_text: str):
     with open(name_file, mode="w", encoding="utf-8") as p:
         p.write(full_text)
 
