@@ -15,7 +15,9 @@
 Полезный контент со страницы в виде читаемого текста.
 
 ## Запуск проекта
-- В режиме web: docker-compose up -d  
-- В режиме терминала: docker exec parser python -m parser http://google.com 80
+собрать образ docker build -t parser .
+
+- веб сервер docker run --rm -d -p 8000:8000 parser
+- CLI docker run --rm parser python -m parser google.com
 
 
