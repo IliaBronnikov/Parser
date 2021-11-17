@@ -15,9 +15,17 @@
 Полезный контент со страницы в виде читаемого текста.
 
 ## Запуск проекта
-Собрать образ docker build -t parser .
+Собрать образ 
+'''
+docker build -t parser .
+'''
 
-- веб сервер docker run --rm -d -p 8000:8000 parser
-- CLI docker run --rm parser python -m parser google.com
-
+Запуск веб сервера
+'''
+docker run --rm -d -p 8000:8000 parser
+'''
+Запуск CLI
+'''
+docker run --rm parser python -m parser google.com
+'''
 
