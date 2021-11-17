@@ -1,33 +1,45 @@
 import argparse
 import sys
-
+from typing import Optional
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from bs4 import BeautifulSoup
 import requests
 
-name_file = "fileOutput.txt"
-# url = "https://meduza.io/feature/2021/11/13/rossiyskie-vlasti-pytayutsya-zaschitit-pogibshego-v-berline-diplomata-ot-dikih-teoriy-pressy"
-# length = 80
-decoder_dict = {"yes": True, "no": False}
+app = FastAPI()
+NAME_FILE = "fileOutput.txt"
 
 
-def createParser():
+@app.get("/", response_class=HTMLResponse)
+def read_root():
+    comment = """
+    Hello! <br> Please use "/text?url=url&length_string=length_string&save_img_link=save_img_link" 
+    construction for get request. <br>
+    url -> str <br>
+    length_string -> int <br>
+    save_img_link -> bool <br>
+    For example: http://127.0.0.1:8000/text?url=https://google.com&length_string=90
+    """
+    return comment
+
+
+@app.get("/text", response_class=PlainTextResponse)
+async def read_item(
+    url: str, length_string: Optional[int] = 80, save_img_link: Optional[bool] = False
+):
+    page = get_page(url)
+    parser_data = clean_bs_item(page, length_string)
+    return parser_data
+
+
+def create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("url", type=str, help="Input url")
-    parser.add_argument("length_str", type=int, help="Input length for output string")
+    parser.add_argument("--length_str", dest="length_str", type=int, default=80)
     parser.add_argument(
-        "save_img_link",
-        type=str,
-        choices=["yes", "no"],
-        default="no",
-        help="Save image links in text?",
+        "--save_image_links", dest="save_image_links", action="store_true"
     )
-    parser.add_argument(
-        "save_to_file",
-        type=str,
-        choices=["yes", "no"],
-        default="no",
-        help="Save text to file or write in terminal?",
-    )
+    parser.add_argument("--save_to_file", dest="save_to_file", action="store_true")
     return parser
 
 
@@ -35,7 +47,7 @@ def get_page(url):
     page = requests.get(url)
     content = page.content.decode("utf-8")
     if page.status_code == 200:
-        return content
+        return BeautifulSoup(content, "html.parser")
     return None
 
 
@@ -47,7 +59,7 @@ def chunk_string(string, length):
 
 
 def clean_bs_item(bs_item, length_string):
-    lines = bs_item.find_all(text=True)
+    lines = bs_item.find_all(text=True or "img")
     clean_tags_str = ""
     clean_html_str = ""
     blacklist = [
@@ -59,7 +71,6 @@ def clean_bs_item(bs_item, length_string):
         "head",
         "input",
         "script",
-        "title",
         "style",
         "span",
         "svg",
@@ -83,20 +94,20 @@ def write_data(name_file, full_text):
 
 
 def main():
-    parser = createParser()
+    parser = create_parser()
     arg = parser.parse_args(sys.argv[1:])
-    url = arg.url
+    url = arg
     length_string = arg.length_str
-    save_img_link = decoder_dict[str(arg.save_img_link)]
-    save_to_file = decoder_dict[str(arg.save_to_file)]
+    save_img_link = arg.save_image_links
+    save_to_file = arg.save_to_file
 
     page = get_page(url)
-    bs = BeautifulSoup(page, "html.parser")
-    parser_data = clean_bs_item(bs, length_string)
+    parser_data = clean_bs_item(page, length_string)
     if save_to_file:
-        write_data(name_file, parser_data)
+        write_data(NAME_FILE, parser_data)
     else:
         print(parser_data)
+
 
 if __name__ == "__main__":
     main()
