@@ -16,14 +16,16 @@
 
 ## Запуск проекта
 Собрать образ 
-'''
+```
 docker build -t parser .
-'''
+```
 
 Запуск веб сервера
-'''
+```
 docker run --rm -d -p 8000:8000 parser
-'''
+```
 Запуск CLI
-'docker run --rm parser python -m parser google.com'
+```
+docker run --rm parser python -m parser google.com
+```
 
