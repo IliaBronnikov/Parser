@@ -44,7 +44,10 @@ def create_parser():
 
 
 def get_page(url: str):
-    page = requests.get(url)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
+    }
+    page = requests.get(url, headers=headers)
     content = page.content.decode("utf-8")
     if page.status_code == 200:
         return BeautifulSoup(content, "html.parser")
@@ -59,7 +62,7 @@ def chunk_string(string: str, length: int) -> str:
 
 
 def clean_bs_item(bs_item: BeautifulSoup, length_string: int) -> str:
-    lines = bs_item.find_all(text=True or "img")
+    lines = bs_item.find_all(text=True)
     clean_tags_str = ""
     clean_html_str = ""
     blacklist = [
@@ -88,6 +91,14 @@ def clean_bs_item(bs_item: BeautifulSoup, length_string: int) -> str:
     return clean_html_str
 
 
+def get_url_pictures(bs_item: BeautifulSoup):
+    pictures = bs_item.find_all("img")
+    url_links = "url links: "
+    for pic in pictures:
+        url_links += "{}, ".format(pic["src"])
+    return url_links
+
+
 def write_data(name_file: str, full_text: str):
     with open(name_file, mode="w", encoding="utf-8") as p:
         p.write(full_text)
@@ -96,13 +107,15 @@ def write_data(name_file: str, full_text: str):
 def main():
     parser = create_parser()
     arg = parser.parse_args(sys.argv[1:])
-    url = arg
+    url = arg.url
     length_string = arg.length_str
-    save_img_link = arg.save_image_links
+    save_image_links = arg.save_image_links
     save_to_file = arg.save_to_file
 
     page = get_page(url)
     parser_data = clean_bs_item(page, length_string)
+    if save_image_links:
+        parser_data += get_url_pictures(page)
     if save_to_file:
         write_data(NAME_FILE, parser_data)
     else:
