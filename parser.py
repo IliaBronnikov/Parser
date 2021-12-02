@@ -55,10 +55,13 @@ def get_page(url: str):
 
 
 def chunk_string(string: str, length: int) -> str:
-    while len(string) > length:
-        upper_bound = string.rindex(" ", 0, length)
-        yield string[0:upper_bound].strip()
-        string = string[upper_bound:]
+    while len(string) > length and " " in string:
+        try:
+            upper_bound = string.rindex(" ", 0, length)
+        except ValueError:
+            upper_bound = string.index(" ")
+        yield string[0:upper_bound+1].strip()
+        string = string[upper_bound+1:]
 
 
 def clean_bs_item(bs_item: BeautifulSoup, length_string: int) -> str:
